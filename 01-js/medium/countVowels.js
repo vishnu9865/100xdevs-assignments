@@ -7,6 +7,23 @@
 
 function countVowels(str) {
     // Your code here
+    let map = new Map(
+      [
+        ['a', ''],
+        ['A', ''],
+        ['e', ''],
+        ['E', ''],
+        ['i', ''],
+        ['I', ''],
+        ['o', ''],
+        ['O', ''],
+        ['u', ''],
+        ['U', '']
+      ]
+    );
+    return Array
+      .from(str)
+      .reduce((acc, curr) => map.has(curr) ? acc + 1: acc, 0);
 }
 
 module.exports = countVowels;
