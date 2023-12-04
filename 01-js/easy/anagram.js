@@ -5,13 +5,12 @@
 */
 
 function isAnagram(str1, str2) {
-
+  // strings of varying lengths cannot be anagrams
   if (str1.length !== str2.length) {
     return false;
   }
   // declare maps
   let str1Map = new Map();
-  let str2Map = new Map();
   // populate str1
   for (let i = 0; i < str1.length; i ++ ) {
     let chr = str1[i].toLowerCase();
@@ -24,20 +23,17 @@ function isAnagram(str1, str2) {
   // populate str2
   for (let i = 0; i < str2.length; i ++) {
     let chr = str2[i].toLowerCase();
-    if (str2Map.has(chr)) {
-      str2Map.set(chr, str2Map.get(chr) + 1);
-    } else {
-      str2Map.set(chr, 1);
+    if (str1Map.has(chr)) {
+      if (str1Map.get(chr) - 1 >= 0) {
+        str1Map.set(chr, str1Map.get(chr) - 1);
+      } else {
+        return false;
+      }
     }
   }
   // compare both maps
   for (let [key, value] of str1Map) {
-    // return false if character doesn't exist on one string
-    if (!str2Map.has(key)) {
-      console.log('hi');
-      return false;
-    // return false if character occurrences mismatch
-    } else if (str2Map.get(key) !== value) {
+    if (value !== 0) {
       return false;
     }
   }
