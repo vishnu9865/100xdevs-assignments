@@ -39,11 +39,104 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-  const express = require('express');
-  const bodyParser = require('body-parser');
-  
-  const app = express();
-  
-  app.use(bodyParser.json());
-  
-  module.exports = app;
+const express = require('express');
+const bodyParser = require('body-parser');
+const todos = require('./todos.json');
+const fs = require('node:fs');
+const path = require('node:path');
+const { v4: uuidv4 } = require('uuid');
+
+function writeToFile(todoList) {
+  fs.writeFileSync(path.join(__dirname, '/todos.json'), JSON.stringify(todoList, null, 2));
+}
+
+const app = express();
+
+app.use(bodyParser.json());
+
+app.get('/todos', (req, res, next) => {
+  try {
+    res.send(todos);
+  } catch (e) {
+    next(e);
+  }
+});
+
+app.get('/todos/:id', (req, res, next) => {
+  try {
+    const todo = todos.find(todo => todo.id === req.params.id);
+    if (todo) {
+      res.send(todo);
+    } else {
+      res.status(404).send('Todo not found');
+    }
+  } catch (e) {
+    next(e);
+  }
+});
+
+app.post('/todos', (req, res, next) => {
+  try {
+    const newData = {
+      id: uuidv4(),
+      title: req.body.title,
+      completed: req.body.completed,
+      description: req.body.description
+    }
+    todos.push(newData);
+    writeToFile(todos);
+    res.status(201).send(newData);
+  } catch (e) {
+    next(e);
+  }
+});
+
+app.put('/todos/:id', (req, res, next) => {
+  try {
+    const newData = {};
+    Object.keys(req.body).forEach((value, index) => {
+      newData[value] = req.body[value];
+    });
+    const modifiedTodosList = [...todos.map(todo => {
+      if (todo.id === req.params.id) {
+        return {
+          ...todo,
+          ...newData
+        }
+      }
+      return todo
+    })]
+    writeToFile(modifiedTodosList);
+    res.status(200).send(modifiedTodosList.find(item => item.id === req.params.id));
+  } catch (e) {
+    next(e);
+  }
+})
+
+app.delete('/todos/:id', (req, res, next) => {
+  try {
+    const modifiedTodosList = [
+      ...todos.filter(todo => todo.id !== req.params.id)
+    ];
+    writeToFile(modifiedTodosList);
+    res.status(200).send(todos.find(item => item.id === req.params.id));
+  } catch (e) {
+    next(e);
+  }
+})
+
+// use this below code only after registering all the routes with app object, only then it will work
+app.use((err, req, res, next) => {
+  // console.error(err);
+  res.status(500).send(
+    err.message
+      ? {
+        message: 'Internal Server Error',
+        error: err.message
+      }
+      : 'Internal Server Error');
+});
+
+// app.listen(3001);
+
+module.exports = app;
